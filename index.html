@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#10131d">
+<title>DS Touch — Emulatore Nintendo DS</title>
+<style>
+:root{color-scheme:dark;--bg:#10131d;--panel:#1a2030;--line:#343d55;--accent:#8da8ff;--text:#f5f7ff;--muted:#a9b2c9}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#202944,var(--bg) 60%);color:var(--text);font:15px system-ui,-apple-system,sans-serif;min-height:100vh}
+main{max-width:1000px;margin:auto;padding:18px 14px 36px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}h1{font-size:clamp(1.5rem,4vw,2.2rem);margin:0}.sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+.panel{background:#171d2b;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}button,.filelabel{border:1px solid #53638a;background:#27334d;color:#fff;padding:11px 14px;border-radius:11px;font-weight:750;font-size:.95rem;cursor:pointer;touch-action:manipulation;user-select:none}
+button.primary,.filelabel{background:var(--accent);border-color:var(--accent);color:#101625}button:active,.pressed{transform:scale(.96);filter:brightness(1.2)}
+input[type=file]{display:none}.status{font-size:.88rem;color:var(--muted);margin-top:10px;line-height:1.45}.status strong{color:#dbe4ff}
+#gameArea{display:none}.screens{max-width:480px;margin:0 auto 12px;display:flex;flex-direction:column;gap:8px} .screen{background:#05070b;border:2px solid #45516b;border-radius:8px;aspect-ratio:256/192;display:flex;align-items:center;justify-content:center;color:#67718a;font-size:.85rem;overflow:hidden}
+#emulator{width:100%;min-height:100px}#emulator canvas{max-width:100%;height:auto}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;margin-top:12px}
+.dpad{display:grid;grid-template-columns:repeat(3,minmax(42px,58px));grid-template-rows:repeat(3,48px);gap:5px;justify-content:center}
+.ctrl{padding:0;min-height:46px;border-radius:14px;font-size:1rem;background:#2a3349;border-color:#4a5876;box-shadow:inset 0 -3px #111827}
+.dpad .up{grid-column:2;grid-row:1}.dpad .left{grid-column:1;grid-row:2}.dpad .center{grid-column:2;grid-row:2;background:#1b2232}.dpad .right{grid-column:3;grid-row:2}.dpad .down{grid-column:2;grid-row:3}
+.abxy{display:grid;grid-template-columns:repeat(3,minmax(40px,52px));grid-template-rows:repeat(3,48px);gap:5px;justify-content:center}
+.abxy .x{grid-column:2;grid-row:1}.abxy .y{grid-column:1;grid-row:2}.abxy .b{grid-column:2;grid-row:3}.abxy .a{grid-column:3;grid-row:2}
+.extras{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0}.shoulders{display:flex;gap:8px}.shoulders button{min-width:58px}.system{display:flex;gap:8px}.system button{font-size:.8rem;padding:10px 13px}
+.small{font-size:.8rem;color:var(--muted);line-height:1.5}.notice{border-left:3px solid #e9bc64;padding:8px 11px;color:#e5d5af;font-size:.84rem;margin-top:10px}
+@media(max-width:500px){main{padding:12px 10px 24px}.panel{padding:11px}.controls{gap:3px}.dpad{grid-template-columns:repeat(3,minmax(34px,48px));grid-template-rows:repeat(3,43px);gap:4px}.abxy{grid-template-columns:repeat(3,minmax(34px,45px));grid-template-rows:repeat(3,43px);gap:4px}.ctrl{min-height:42px}.screens{max-width:100%}}
+</style></head>
+<body><main>
+<div class="top"><div><h1>🎮 DS Touch</h1><div class="sub">Interfaccia Nintendo DS con controlli virtuali per touch</div></div><button id="fullscreen">⛶ Schermo intero</button></div>
+<section class="panel">
+<div class="row"><label class="filelabel" for="rom">Scegli gioco .nds</label><input id="rom" type="file" accept=".nds,.dsi,.srl,application/octet-stream"><button id="start" class="primary" disabled>Avvia gioco</button><button id="reset">Ricarica pagina</button></div>
+<div id="status" class="status">Scegli un file ROM che possiedi legalmente. L'interfaccia è pronta; il motore di emulazione viene caricato dal web.</div>
+<div class="notice">Questa versione usa un motore online: non funziona completamente offline e richiede Internet per scaricare il core. La ROM scelta viene letta dal browser e non viene caricata su un tuo server.</div>
+</section>
+<section id="gameArea" class="panel">
+<div class="screens"><div class="screen" id="topScreen">Schermo superiore DS</div><div class="screen" id="bottomScreen">Schermo inferiore DS / touch</div></div>
+<div id="emulator"></div>
+<div class="extras"><div class="shoulders"><button class="ctrl" data-key="q">L</button><button class="ctrl" data-key="e">R</button></div><div class="system"><button class="ctrl" data-key="Shift">SELECT</button><button class="ctrl" data-key="Enter">START</button></div></div>
+<div class="controls">
+<div class="dpad">
+<button class="ctrl up" data-key="ArrowUp">▲</button><button class="ctrl left" data-key="ArrowLeft">◀</button><button class="ctrl center" disabled>✦</button><button class="ctrl right" data-key="ArrowRight">▶</button><button class="ctrl down" data-key="ArrowDown">▼</button>
+</div>
+<div class="abxy">
+<button class="ctrl x" data-key="a">X</button><button class="ctrl y" data-key="s">Y</button><button class="ctrl b" data-key="x">B</button><button class="ctrl a" data-key="z">A</button>
+</div></div>
+<p class="small">Suggerimento: tieni premuto un pulsante virtuale per continuare a premere il tasto. Tocca lo schermo inferiore del gioco per usare lo stilo quando il core lo supporta.</p>
+</section>
+<section class="panel small"><strong>Pubblicazione:</strong> carica i file su GitHub e abilita GitHub Pages. Per una vera versione offline, il core JavaScript/WebAssembly e tutti i suoi file devono essere scaricati e salvati nel repository; GitHub Pages da solo non rende offline il sito.</section>
+</main>
+<script>
+const romInput=document.querySelector('#rom'),startBtn=document.querySelector('#start'),statusEl=document.querySelector('#status');
+let romUrl=null,loaderAdded=false;
+romInput.addEventListener('change',()=>{const f=romInput.files?.[0];if(!f)return;if(romUrl)URL.revokeObjectURL(romUrl);romUrl=URL.createObjectURL(f);startBtn.disabled=false;statusEl.innerHTML='<strong>'+escapeHtml(f.name)+'</strong> selezionato ('+(f.size/1048576).toFixed(1)+' MB). Premi Avvia gioco.'});
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+startBtn.addEventListener('click',()=>{
+ if(!romUrl)return;
+ document.querySelector('#gameArea').style.display='block';
+ document.querySelector('#topScreen').style.display='none';document.querySelector('#bottomScreen').style.display='none';
+ document.querySelector('#emulator').innerHTML='';
+ statusEl.textContent='Caricamento del motore Nintendo DS… La prima apertura richiede una connessione Internet.';
+ window.EJS_player='#emulator';window.EJS_core='melonds';window.EJS_gameUrl=romUrl;window.EJS_gameName=romInput.files[0].name;window.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';window.EJS_startOnLoaded=true;window.EJS_color='#8da8ff';window.EJS_VirtualGamepad=true;
+ if(!loaderAdded){const s=document.createElement('script');s.src='https://cdn.emulatorjs.org/stable/data/loader.js';s.onload=()=>{loaderAdded=true;statusEl.textContent='Motore caricato. Se il gioco non parte, controlla la compatibilità del browser e i requisiti del core.'};s.onerror=()=>statusEl.textContent='Impossibile caricare il motore. Controlla la connessione Internet.';document.body.appendChild(s);loaderAdded=true}else{statusEl.textContent='Motore già richiesto. Se non parte, ricarica la pagina e seleziona di nuovo il gioco.'}
+});
+function keyEvent(key,type){let keyCode=key==='ArrowUp'?38:key==='ArrowDown'?40:key==='ArrowLeft'?37:key==='ArrowRight'?39:key==='Enter'?13:key==='Shift'?16:key.toLowerCase().charCodeAt(0);const target=document.querySelector('#emulator')||document;const ev=new KeyboardEvent(type,{key,code:key.length===1?'Key'+key.toUpperCase():key,keyCode,which:keyCode,bubbles:true,cancelable:true});document.dispatchEvent(ev);window.dispatchEvent(new KeyboardEvent(type,{key,code:key.length===1?'Key'+key.toUpperCase():key,keyCode,which:keyCode,bubbles:true,cancelable:true}));}
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;let held=false;const down=e=>{e.preventDefault();if(held)return;held=true;b.classList.add('pressed');keyEvent(k,'keydown')};const up=e=>{e.preventDefault();if(!held)return;held=false;b.classList.remove('pressed');keyEvent(k,'keyup')};b.addEventListener('pointerdown',down);['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,up));b.addEventListener('contextmenu',e=>e.preventDefault())});
+document.querySelector('#fullscreen').onclick=()=>{const el=document.querySelector('#gameArea').style.display!=='none'?document.querySelector('#gameArea'):document.documentElement;if(el.requestFullscreen)el.requestFullscreen().catch(()=>{});};
+document.querySelector('#reset').onclick=()=>location.reload();
+</script></body></html>
